@@ -1,3 +1,4 @@
+import type { FabricObject } from '../shapes/Object/FabricObject';
 import type { Pattern } from './Pattern';
 
 export type PatternRepeat = 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
@@ -11,7 +12,7 @@ type ExportedKeys =
   | 'source';
 
 export type PatternOptions = Partial<Pick<Pattern, ExportedKeys>> & {
-  source: CanvasImageSource;
+  source: CanvasImageSource | FabricObject;
 };
 
 export type SerializedPatternOptions = Omit<PatternOptions, 'source'> & {

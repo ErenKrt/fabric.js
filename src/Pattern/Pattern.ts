@@ -12,6 +12,11 @@ import type {
   SerializedPatternOptions,
 } from './types';
 import { log } from '../util/internals/console';
+import { Path } from '../shapes/Path';
+import type { FabricObject } from '../shapes/Object/FabricObject';
+import { iMatrix } from '../constants';
+import { matrixToSVG } from '../util';
+
 
 /**
  * @see {@link http://fabricjs.com/patterns demo}
@@ -73,7 +78,7 @@ export class Pattern {
   /**
    * The actual pixel source of the pattern
    */
-  declare source: CanvasImageSource;
+  declare source: CanvasImageSource | FabricObject;
 
   /**
    * If true, this object will not be exported during the serialization of a canvas
@@ -95,6 +100,10 @@ export class Pattern {
   constructor(options: PatternOptions) {
     this.id = uid();
     Object.assign(this, options);
+  }
+
+  isPathSource(): this is { source: Path } {
+    return !!this.source && this.source instanceof Path;
   }
 
   /**
@@ -139,7 +148,11 @@ export class Pattern {
       return null;
     }
 
-    return ctx.createPattern(this.source, this.repeat)!;
+    var patternSource: CanvasImageSource = this.isPathSource()
+      ? this.source.toCanvasElement()
+      : (this.source as CanvasImageSource);
+
+    return ctx.createPattern(patternSource, this.repeat)!;
   }
 
   /**
@@ -184,15 +197,18 @@ export class Pattern {
           : ifNaN(
               ((patternSource as HTMLImageElement).height as number) / height,
               0,
-            );
+            ),
+            patternTransform = (this.patternTransform || iMatrix).concat() as TMat2D;
 
     return [
-      `<pattern id="SVGID_${id}" x="${patternOffsetX}" y="${patternOffsetY}" width="${patternWidth}" height="${patternHeight}">`,
-      `<image x="0" y="0" width="${
-        (patternSource as HTMLImageElement).width
-      }" height="${
-        (patternSource as HTMLImageElement).height
-      }" xlink:href="${this.sourceToString()}"></image>`,
+      `<pattern id="SVGID_${id}" x="${patternOffsetX}" y="${patternOffsetY}" width="${patternWidth}" height="${patternHeight}" patternTransform="${matrixToSVG(patternTransform)}">`,
+      this.isPathSource()
+        ? (patternSource as Path).toSVG()
+        : `<image x="0" y="0" width="${
+            (patternSource as HTMLImageElement).width
+          }" height="${
+            (patternSource as HTMLImageElement).height
+          }" xlink:href="${this.sourceToString()}"></image>`,
       `</pattern>`,
       '',
     ].join('\n');

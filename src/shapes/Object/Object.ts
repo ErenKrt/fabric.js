@@ -732,9 +732,9 @@ export class FabricObject<
    * @since 3.0.0
    * @returns Boolean
    */
-  hasStroke() {
+  hasStroke(): boolean {
     return (
-      this.stroke && this.stroke !== 'transparent' && this.strokeWidth !== 0
+      !!this.stroke && this.stroke !== 'transparent' && this.strokeWidth !== 0
     );
   }
 
@@ -748,8 +748,8 @@ export class FabricObject<
    * @since 3.0.0
    * @returns Boolean
    */
-  hasFill() {
-    return this.fill && this.fill !== 'transparent';
+  hasFill(): boolean {
+    return !!this.fill && this.fill !== 'transparent';
   }
 
   /**
@@ -823,7 +823,6 @@ export class FabricObject<
       ctx.globalCompositeOperation = 'destination-in';
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    //ctx.scale(1 / 2, 1 / 2);
     ctx.drawImage(canvasWithClipPath, 0, 0);
     ctx.restore();
   }
